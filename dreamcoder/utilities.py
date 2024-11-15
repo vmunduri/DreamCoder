@@ -12,6 +12,8 @@ from itertools import chain
 import heapq
 
 import hashlib
+if not hasattr(inspect, 'getargspec'):
+    inspect.getargspec = inspect.getfullargspec
 
 def computeMD5hash(my_string):
     #https://stackoverflow.com/questions/13259691/convert-string-to-md5

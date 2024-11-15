@@ -24,45 +24,56 @@ From: ubuntu
 
 %post
 
+    # Install system dependencies
     apt-get update && apt-get -y install python3 git wget opam m4 libcairo2-dev libzmq3-dev swig graphviz
 
+    # Set up /container directory
     mkdir /container
     chmod 777 /container
     HOME=/container
     export HOME
     
-    wget https://repo.continuum.io/miniconda/Miniconda3-py37_4.9.2-Linux-x86_64.sh
-    chmod +x Miniconda3-py37_4.9.2-Linux-x86_64.sh
-    ./Miniconda3-py37_4.9.2-Linux-x86_64.sh -b  -p /usr/local/conda
-    rm ./Miniconda3-py37_4.9.2-Linux-x86_64.sh
+    # Install Miniconda
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+    chmod +x miniconda.sh
+        ./miniconda.sh -b -p /usr/local/conda
+    rm miniconda.sh
+
     export PATH="/usr/local/conda/bin:$PATH"
 
-    conda install -y  numpy dill pyzmq matplotlib protobuf scikit-learn scipy #vose-alias-method
+    # Install Python dependencies
+    pip install numpy dill pyzmq matplotlib protobuf scikit-learn scipy
     pip install git+https://github.com/MaxHalford/vose
     pip install dill sexpdata pygame pycairo cairocffi psutil pypng Box2D-kengz graphviz frozendict pathos
-    
-    conda install pytorch==1.2.0 torchvision==0.4.0 cpuonly -c pytorch
-    
+    pip install torch torchvision
+
+    # Initialize OPAM and set up OCaml environment
     opam init -y --auto-setup --root /container/.opam
     opam update
     opam switch create 4.06.1+flambda
     eval `opam config env`
-    opam install -y  ppx_jane core re2 yojson vg cairo2 camlimages menhir ocaml-protoc zmq utop jbuilder
+
+    
+
+    # Install remaining OCaml dependencies
+    opam install -y  ppx_jane core re2 yojson.1.6.0 vg cairo2 camlimages menhir.20211128 ocaml-protoc zmq utop jbuilder
     echo "
-#use "topfind";;
+#use \"topfind\";;
 #thread;;
-#require "core.top";;
-#require "core.syntax";;
+#require \"core.top\";;
+#require \"core.syntax\";;
 open Core;;
 " >> /container/.ocamlinit
     echo 'eval `opam config env`' >> /container/.bashrc  
 
+    # Install PyPy
     wget https://downloads.python.org/pypy/pypy3.6-v7.3.3-linux64.tar.bz2
     tar xjvf pypy3.6-v7.3.3-linux64.tar.bz2
     rm pypy3.6-v7.3.3-linux64.tar.bz2
     mv pypy3.6-v7.3.3-linux64 /container
     PATH=/container/pypy3.6-v7.3.3-linux64/bin:$PATH
 
+    # Install PyPy dependencies
     pypy3 -m ensurepip
     pypy3 -m pip install vmprof
     pypy3 -m pip install dill
@@ -70,5 +81,3 @@ open Core;;
     pypy3 -m pip install frozendict
     pypy3 -m pip install numpy
     pypy3 -m pip install pathos
-
-    

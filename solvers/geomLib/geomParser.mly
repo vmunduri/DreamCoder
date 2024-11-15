@@ -32,6 +32,8 @@
 %token EQUALS
 %token EOF
 
+
+
 %start <(Interpreter.shapeprogram) option> program
 %%
 program:

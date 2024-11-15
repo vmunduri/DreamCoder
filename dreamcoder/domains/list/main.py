@@ -22,7 +22,8 @@ def retrieveJSONTasks(filename, features=False):
                   "output": bool|int|list-of-bool|list-of-int},
          "examples": [{"i": data, "o": data}]}
     """
-    with open(filename, "r") as f:
+    full_path = "/home/ubuntu/ec/dreamcoder/domains/list/data/" + filename
+    with open(full_path, "r") as f:
         loaded = json.load(f)
     TP = {
         "bool": tbool,
@@ -269,12 +270,12 @@ def main(args):
 
     dataset = args.pop("dataset")
     tasks = {
-        "Lucas-old": lambda: retrieveJSONTasks("data/list_tasks.json") + sortBootstrap(),
+        "Lucas-old": lambda: retrieveJSONTasks("list_tasks.json") + sortBootstrap(),
         "bootstrap": make_list_bootstrap_tasks,
         "sorting": sortBootstrap,
-        "Lucas-depth1": lambda: retrieveJSONTasks("data/list_tasks2.json")[:105],
-        "Lucas-depth2": lambda: retrieveJSONTasks("data/list_tasks2.json")[:4928],
-        "Lucas-depth3": lambda: retrieveJSONTasks("data/list_tasks2.json"),
+        "Lucas-depth1": lambda: retrieveJSONTasks("list_tasks2.json")[:105],
+        "Lucas-depth2": lambda: retrieveJSONTasks("list_tasks2.json")[:4928],
+        "Lucas-depth3": lambda: retrieveJSONTasks("list_tasks2.json"),
     }[dataset]()
 
     maxTasks = args.pop("maxTasks")
