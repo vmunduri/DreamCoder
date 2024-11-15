@@ -17,6 +17,9 @@ Ensure that Singularity is installed and configured properly for compatibility w
     - `yojson` updated to `1.6.0`
     - `menhir` updated to `20211128`
 
+- **Added `incr.py`**:
+  - A new file, `incr.py`, is added to check the working of creating new domains in DreamCoder.
+
 - Other files are unchanged from the original repository.
 
 ---
