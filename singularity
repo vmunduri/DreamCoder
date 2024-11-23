@@ -1,62 +1,39 @@
-Bootstrap: docker
+Bootstrap: localimage
 
-From: ubuntu
-
+From: pytorch_latest.sif
 
 %runscript
-	eval `opam config env`
-	if [ $# = 0 ] ; then exec bash; else exec "$@"; fi
-
-
+    eval $(opam env)
+    if [ $# = 0 ]; then exec bash; else exec "$@"; fi
 
 %environment
-
+    # Use /container as the home directory for OPAM
     HOME=/container
     export HOME
-    PATH="/usr/local/conda/bin:/container/pypy3.6-v7.3.3-linux64/bin:$PATH"
+    # Preserve existing paths from pytorch_latest.sif and append custom paths
+    PATH="/usr/local/conda/bin:$PATH"
     export PATH
 
-
 %labels
-
-   AUTHOR ellisk@mit.edu
-
+    AUTHOR ellisk@mit.edu
 
 %post
+    # Install system dependencies without altering Python or PyTorch
+    apt-get update && apt-get -y install git wget opam m4 libcairo2-dev libzmq3-dev swig graphviz
 
-    # Install system dependencies
-    apt-get update && apt-get -y install python3 git wget opam m4 libcairo2-dev libzmq3-dev swig graphviz
-
-    # Set up /container directory
-    mkdir /container
+    # Set up /container directory for OPAM and related configurations
+    mkdir -p /container
     chmod 777 /container
-    HOME=/container
-    export HOME
-    
-    # Install Miniconda
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-    chmod +x miniconda.sh
-        ./miniconda.sh -b -p /usr/local/conda
-    rm miniconda.sh
-
-    export PATH="/usr/local/conda/bin:$PATH"
-
-    # Install Python dependencies
-    pip install numpy dill pyzmq matplotlib protobuf scikit-learn scipy
-    pip install git+https://github.com/MaxHalford/vose
-    pip install dill sexpdata pygame pycairo cairocffi psutil pypng Box2D-kengz graphviz frozendict pathos
-    pip install torch torchvision
+    export HOME=/container
 
     # Initialize OPAM and set up OCaml environment
-    opam init -y --auto-setup --root /container/.opam
+    opam init -y --auto-setup --disable-sandboxing --root /container/.opam
     opam update
     opam switch create 4.06.1+flambda
-    eval `opam config env`
+    eval $(opam env)
 
-    
-
-    # Install remaining OCaml dependencies
-    opam install -y  ppx_jane core re2 yojson.1.6.0 vg cairo2 camlimages menhir.20211128 ocaml-protoc zmq utop jbuilder
+    # Install OCaml dependencies
+    opam install -y ppx_jane core re2 yojson.1.6.0 vg cairo2 camlimages menhir.20211128 ocaml-protoc zmq utop jbuilder
     echo "
 #use \"topfind\";;
 #thread;;
@@ -64,20 +41,11 @@ From: ubuntu
 #require \"core.syntax\";;
 open Core;;
 " >> /container/.ocamlinit
-    echo 'eval `opam config env`' >> /container/.bashrc  
+    echo 'eval $(opam env)' >> /container/.bashrc  
 
-    # Install PyPy
-    wget https://downloads.python.org/pypy/pypy3.6-v7.3.3-linux64.tar.bz2
-    tar xjvf pypy3.6-v7.3.3-linux64.tar.bz2
-    rm pypy3.6-v7.3.3-linux64.tar.bz2
-    mv pypy3.6-v7.3.3-linux64 /container
-    PATH=/container/pypy3.6-v7.3.3-linux64/bin:$PATH
+    # Use Miniconda (already in pytorch_latest.sif) for dependency installation
+    export PATH="/usr/local/conda/bin:$PATH"
+    conda install -y numpy dill pyzmq matplotlib protobuf scikit-learn scipy
+    pip install git+https://github.com/MaxHalford/vose
+    pip install dill sexpdata pygame pycairo cairocffi psutil pypng Box2D-kengz graphviz frozendict pathos
 
-    # Install PyPy dependencies
-    pypy3 -m ensurepip
-    pypy3 -m pip install vmprof
-    pypy3 -m pip install dill
-    pypy3 -m pip install psutil
-    pypy3 -m pip install frozendict
-    pypy3 -m pip install numpy
-    pypy3 -m pip install pathos
